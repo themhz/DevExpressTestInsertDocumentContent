@@ -10,7 +10,5 @@ namespace ConsoleApp1 {
             var example = new example1();
             example.test();
         }
-
-
     }
 }

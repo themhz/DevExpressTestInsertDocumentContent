@@ -14,51 +14,61 @@ namespace ConsoleApp1 {
 
         public void test() {
             using (RichEditDocumentServer parentWordProcessor = new RichEditDocumentServer()) {
+                                
                 parentWordProcessor.Document.BeginUpdate();
-                parentWordProcessor.LoadDocument("..\\..\\documents\\main_document.docx");
-
-                //create child wordprocessor
+                parentWordProcessor.LoadDocument("..\\..\\documents\\main_document.docx");                
                 string documentTemplate = Path.Combine("..\\..\\documents\\template_part.docx");
-                using (RichEditDocumentServer childWordPrecessor = new RichEditDocumentServer()) {
-                    //load document to child wordprocessor
-                    childWordPrecessor.LoadDocumentTemplate(documentTemplate);
 
-                    childWordPrecessor.Document.BeginUpdate();
+                List<string> comments = new List<string>();
 
-                    //Appears ok
-                    parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
-                    parentWordProcessor.Document.EndUpdate();
-                    //Appears ok
-                    parentWordProcessor.Document.BeginUpdate();
-                    parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
-                    parentWordProcessor.Document.EndUpdate();
-                    //Doesnt Appears
-                    parentWordProcessor.Document.BeginUpdate();
-                    parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
-                    parentWordProcessor.Document.EndUpdate();
+                //Loops max times to replicate the problem
+                int max = 4;
+                for (int i=0; i < max; i++) {
+                    //create child wordprocessor
+                    using (RichEditDocumentServer childWordPrecessor = new RichEditDocumentServer()) {
+                        //load document to child wordprocessor
+                        childWordPrecessor.LoadDocumentTemplate(documentTemplate);
 
-                    parentWordProcessor.Document.BeginUpdate();
-                    parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
-                    parentWordProcessor.Document.EndUpdate();
+                        //Comments can be accessed here
+                        string comment = this.getCommentText(childWordPrecessor.Document.Comments[0]);
+                        comments.Add(comment);
+                        //childWordPrecessor.Document.Comments.Remove(childWordPrecessor.Document.Comments[0]);
 
-                    parentWordProcessor.Document.BeginUpdate();
-                    parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
+                        //but are lost here
+                        parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
+                        //parentWordProcessor.Document.AppendDocumentContent(childWordPrecessor.Document.Range);
+                    }
 
-
-                    childWordPrecessor.Document.EndUpdate();
+                    
+                    //creating a page break at a particular place where the string appears
+                    Regex r = new Regex("{PBR}");
+                    if (max < 4) {                        
+                        parentWordProcessor.Document.ReplaceAll(r, DevExpress.Office.Characters.PageBreak.ToString());
+                    } else {
+                        parentWordProcessor.Document.ReplaceAll(r, "");
+                    }
                 }
+                                              
 
                 parentWordProcessor.Document.EndUpdate();
                 parentWordProcessor.SaveDocument("..\\..\\documents\\document_generated.docx", DocumentFormat.OpenXml);
                 Process.Start(new ProcessStartInfo("..\\..\\documents\\document_generated.docx") { UseShellExecute = true });
             }
+
+            
         }
 
-        public DocumentRange getTextRange(string search, RichEditDocumentServer wp = null) {
-          
+        public DocumentRange getTextRange(string search, RichEditDocumentServer wp = null) {          
                 Regex myRegEx = new Regex(search);                
-                return wp.Document.FindAll(myRegEx).First();
-          
+                return wp.Document.FindAll(myRegEx).First();          
+        }
+
+        public string getCommentText(Comment comment) {
+            SubDocument doc = comment.BeginUpdate();
+            string commentText = doc.GetText(doc.Range).Replace("”", "\"").Replace("{{", "{").Replace("}}", "}");
+            comment.EndUpdate(doc);
+
+            return commentText;
         }
     }
 }
