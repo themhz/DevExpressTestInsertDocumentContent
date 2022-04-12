@@ -1,0 +1,10 @@
+﻿{
+	"Includes":
+	[
+		{
+			"file":"Departments.docx",
+			"alias": "Departments",
+			"table":"Departments"
+		}
+	]
+}

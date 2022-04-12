@@ -52,8 +52,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="documents\main_document.docx" />
-    <None Include="documents\template_part.docx" />
+    <None Include="demo\template_part.docx" />
+    <None Include="documents\old\main_document.docx" />
+    <None Include="documents\old\template_part.docx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="demo\fields.txt" />
+    <Content Include="demo\parts.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

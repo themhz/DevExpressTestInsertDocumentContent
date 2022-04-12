@@ -1,0 +1,29 @@
+﻿{
+	"Tables":
+	[
+		{
+			"table":"Departments",
+			"key":"ID"
+			"alias": "Dep"
+			"Fields":[
+				{"name":"Name","Alias":"DepName", "Format":""},
+				{"name":"Count","Alias":"Count", "Format":"{0:0}"},
+			]
+		},
+		{
+			"table":"Employees",
+			"key":"ID",
+			"relation":"Departments", 
+			"fKey":"DepartmentId",			
+			"alias": "Employees"
+			"Fields":[
+				{"name":"No", "alias":"No"},
+				{"name":"FirstName", "alias":"Fname"},
+				{"name":"LastName", "alias":"Lname"},
+				{"name":"HireDate","alias":"Hdate", "format":"{0:dd/MM/yyyy}"}
+				{"name":"JobDescription", "alias":"Job"},
+				{"name":"Salary","alias":"Salary", "format":"{0:0.00} €", formatNull:"-"}
+			]
+		}		
+	]
+}

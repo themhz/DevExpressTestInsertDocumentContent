@@ -19,35 +19,42 @@ namespace ConsoleApp1 {
                 parentWordProcessor.LoadDocument("..\\..\\documents\\main_document.docx");                
                 string documentTemplate = Path.Combine("..\\..\\documents\\template_part.docx");
 
-                List<string> comments = new List<string>();
+                //List<string> comments = new List<string>();
+
+                Dictionary<string, Table> tables = new Dictionary<string, Table>();
 
                 //Loops max times to replicate the problem
                 int max = 4;
-                for (int i=0; i < max; i++) {
+               
                     //create child wordprocessor
                     using (RichEditDocumentServer childWordPrecessor = new RichEditDocumentServer()) {
-                        //load document to child wordprocessor
-                        childWordPrecessor.LoadDocumentTemplate(documentTemplate);
+                        for (int i = 0; i < max; i++) {
+                            //load document to child wordprocessor
+                            childWordPrecessor.LoadDocumentTemplate(documentTemplate);
 
-                        //Comments can be accessed here
-                        string comment = this.getCommentText(childWordPrecessor.Document.Comments[0]);
-                        comments.Add(comment);
-                        //childWordPrecessor.Document.Comments.Remove(childWordPrecessor.Document.Comments[0]);
+                            //Comments can be accessed here
+                            string comment = this.getCommentText(childWordPrecessor.Document.Comments[0]);
 
-                        //but are lost here
-                        parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
-                        //parentWordProcessor.Document.AppendDocumentContent(childWordPrecessor.Document.Range);
+                        //comments.Add(comment);
+                            tables.Add(comment, this.getTable(childWordPrecessor.Document.Comments[0].Range, childWordPrecessor));
+
+                            childWordPrecessor.Document.Comments.Remove(childWordPrecessor.Document.Comments[0]);
+
+                            //but are lost here
+                            parentWordProcessor.Document.InsertDocumentContent(this.getTextRange("{{Test}}", parentWordProcessor).Start, childWordPrecessor.Document.Range, InsertOptions.KeepSourceFormatting);
+                            //parentWordProcessor.Document.AppendDocumentContent(childWordPrecessor.Document.Range);
+
+                            //parentWordProcessor.Document.Delete(parentWordProcessor.Document.Comments[0].Range);
+
+                            //creating a page break at a particular place where the string appears
+                            Regex r = new Regex("{PBR}");
+                            if (max < 4) {
+                                parentWordProcessor.Document.ReplaceAll(r, DevExpress.Office.Characters.PageBreak.ToString());
+                            } else {
+                                parentWordProcessor.Document.ReplaceAll(r, "");
+                            }
+                        }
                     }
-
-                    
-                    //creating a page break at a particular place where the string appears
-                    Regex r = new Regex("{PBR}");
-                    if (max < 4) {                        
-                        parentWordProcessor.Document.ReplaceAll(r, DevExpress.Office.Characters.PageBreak.ToString());
-                    } else {
-                        parentWordProcessor.Document.ReplaceAll(r, "");
-                    }
-                }
                                               
 
                 parentWordProcessor.Document.EndUpdate();
@@ -67,8 +74,13 @@ namespace ConsoleApp1 {
             SubDocument doc = comment.BeginUpdate();
             string commentText = doc.GetText(doc.Range).Replace("”", "\"").Replace("{{", "{").Replace("}}", "}");
             comment.EndUpdate(doc);
-
             return commentText;
+        }
+
+        public Table getTable(DocumentRange range, RichEditDocumentServer wp) {
+            TableCell tableCell = wp.Document.Tables.GetTableCell(range.Start);
+            Table table = tableCell.Row.Table;
+            return table;
         }
     }
 }
